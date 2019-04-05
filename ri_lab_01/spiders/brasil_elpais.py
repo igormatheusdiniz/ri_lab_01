@@ -22,8 +22,6 @@ class BrasilElpaisSpider(scrapy.Spider):
 
         for href in response.css("h2.articulo-titulo a::attr(href)"):
             yield response.follow(href, self.parse_content, meta={'url': response.url})
-                    
-                
 
         page = response.url.split("/")[-2]
         filename = 'quotes-%s.html' % page
@@ -42,15 +40,15 @@ class BrasilElpaisSpider(scrapy.Spider):
         #formata da maneira requisitada
         formatedDate = datetime.strptime(formatedDate, '%Y-%m-%dT%H:%M:%S')
 
-        #pegar texto
-        for content in response.css('div.contenedor'): 
-            recoveredText = content.css('div.articulo__contenedor p::text').getall()
-            recoveredText = "".join(recoveredText)
+        #Recuperar o texto (dirty mode)
+        #for content in response.css('div.contenedor'): 
+        #    recoveredText = content.css('div.articulo__contenedor p::text').getall()
+        #    recoveredText = "".join(recoveredText)
 
-        #text = response.xpath('//div[contains(@class, "articulo__contenedor")]//p/text() | \
-        #                        //div[contains(@class, "articulo__contenedor")]//p/span/text() | \
-        #                            //div[contains(@class, "articulo__contenedor")]//p/a/text()').getall()
-        #text = "".join(text)
+        #Recuperar o texto por meio de xpath
+        recoveredText = response.xpath('//div[contains(@class, "articulo__contenedor")]//p/text() | \
+                                //div[contains(@class, "articulo__contenedor")]//p/span/text()').getall()
+        recoveredText = "".join(recoveredText)
 
         yield {
             'title': extract_with_css('h1.articulo-titulo::text'),
