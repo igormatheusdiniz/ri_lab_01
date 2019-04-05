@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import scrapy
 import json
+from datetime import datetime
 
 from ri_lab_01.items import RiLab01Item
 from ri_lab_01.items import RiLab01CommentItem
@@ -34,13 +35,31 @@ class BrasilElpaisSpider(scrapy.Spider):
         def extract_with_css(query):
             return response.css(query).get(default='').strip()
 
+        #Necessidade de ajustes no formato da data
+        formatedDate = extract_with_css('time::attr(datetime)')
+        #seleciona parte da data importante capturada pelo crawler
+        formatedDate = formatedDate[:-6]
+        #formata da maneira requisitada
+        formatedDate = datetime.strptime(formatedDate, '%Y-%m-%dT%H:%M:%S')
+
+        #pegar texto
+        for content in response.css('div.contenedor'): 
+            recoveredText = content.css('div.articulo__contenedor p::text').getall()
+            recoveredText = "".join(recoveredText)
+
+        #text = response.xpath('//div[contains(@class, "articulo__contenedor")]//p/text() | \
+        #                        //div[contains(@class, "articulo__contenedor")]//p/span/text() | \
+        #                            //div[contains(@class, "articulo__contenedor")]//p/a/text()').getall()
+        #text = "".join(text)
+
         yield {
             'title': extract_with_css('h1.articulo-titulo::text'),
             'sub-title': extract_with_css('h2.articulo-subtitulo::text'),
             'author': extract_with_css('span.autor-nombre  a::text'),
-            'date': extract_with_css('time::attr(datetime)'),
+            'date': formatedDate,
             'url': response.url,
             'section': response.meta['url'].split('/')[-2],
-            'text': extract_with_css('div.articulo-cuerpo p::text')
+            'text':recoveredText
+            #'text': extract_with_css('div.articulo-cuerpo p::text')
         }
         
